@@ -1,0 +1,54 @@
+# ------------------------------------------------------------------------------------------
+#    name: vault.yaml
+#
+# ------------------------------------------------------------------------------------------
+vault_config:
+    main_password:                               'Password'
+    root_name:                                   'root'
+    root_password:                               '{{ main_password }}'
+    # ...............................................................
+    # proxmox    
+    proxmox_username:                            '{{ root_name }}'                       # Username for API/SSH login
+    proxmox_password:                            'Password'                              # Password for API/SSH login    
+    # Email Notification Settings
+    proxmox_smtp_endpoint:                       'endpoint-smtp'                         # endpoint name 
+    proxmox_smtp_server:                         'xxxxxxxxxxxx'                          # SMTP server
+    proxmox_smtp_port:                           465                                     # SMTP port
+    proxmox_smtp_mode:                           'TLS'                                   # TLS|SPARTTLS    
+    proxmox_smtp_username:                       'xxxxxxxxxxxxxxx'                       # SMTP authentication username
+    proxmox_smtp_password:                       'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'        # SMTP authentication password
+    proxmox_smtp_from_address:                   'xxxxxxxxxxxxxxxx'                      # from email notification
+    proxmox_smtp_mailto:                         'xxxxxxxxxxxxxxxxxxxxxxxxx'             # List of email recipients
+    proxmox_smtp_author:                         'Proxmox admin'                         # Author of the mail. Defaults to 'Proxmox VE'.
+    proxmox_smtp_comment:                        'Send email from proxmox'               # Comment
+    # ...............................................................   
+    # prometheus-pve-exporter
+    pve_exporter_user_for_service:               'root@pam'                              # Linux Proxmox user 
+    pve_exporter_password_for_service:           '{{ proxmox_password }}'                # Linux Proxmox password
+    # ...............................................................   
+    # prometheus-node-exporter
+    node_exporter_user_for_service:              'node_exporter'                         # to run the exporter service
+    node_exporter_group_for_service:             'node_exporter'                         # to run the exporter service  
+    # ...............................................................   
+    # prometheus-pgsql-exporter
+    pgsql_exporter_user_for_service:             'postgres'                              # to run the exporter service
+    pgsql_exporter_group_for_service:            'postgres'                              # to run the exporter service  
+    # ...............................................................
+    # prometheus-fail2ban-exporter
+    fail2ban_exporter_user_for_api:              'monitoring@pve'                        # Proxmox user on realm @pv
+    fail2ban_exporter_user_for_service:          'root'                                  # to run the exporter service
+    fail2ban_exporter_group_for_service:         'root'                                  # to run the exporter service   
+    # ...............................................................
+    # grafana          
+    grafana_admin_username:                      'admin'
+    grafana_admin_password:                      '{{ proxmox_password }}'
+    # ...............................................................
+    # pfsense
+    pfsense_admin_user:                          'admin'
+    pfsense_admin_password:                      '{{ main_password }}'
+    # ...............................................................
+    # postgresql
+    pgsql_super_user:                            'postgres'
+    pgsql_super_user_password:                   '{{ root_password }}'
+    pgsql_dba_name:                              'sysdba00'
+    pgsql_dba_password:                          '{{ root_password }}'  
