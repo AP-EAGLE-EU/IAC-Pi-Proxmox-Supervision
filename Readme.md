@@ -45,7 +45,7 @@
   └──   log
 ```
 
-![Grafana Dashboard](.attachments.3466330/image.png)
+![image](https://github.com/user-attachments/assets/5a8d2225-dc7a-4a7c-bc13-469a15a9f3de)
 
 # Functions:
 
