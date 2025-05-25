@@ -87,7 +87,7 @@ py iac.py <playbook-name>.yaml
 
 This approach allows you to automate and customize the installation and configuration of your IT monitoring stack in a modular and secure way.
 
-# Pinciples substitution to handle placeholders like:
+## Pinciples substitution to handle placeholders with Jinja2 format like:
 
 config.yaml:
 
@@ -101,7 +101,7 @@ vault_file_path:                             '{{ base_directory }}/vault/vault.y
 # ...............................................................
 # prometheus
 prometheus_version:                          '2.53.3'   # LTS
-prometheus_ip:                               '10.4.1.151'
+prometheus_ip:                               '192.170.1.100'
 prometheus_configs:
 - install:                               true
 name:                                  'prometheus.yml'
@@ -116,50 +116,8 @@ name:                                  'prometheus.service'
 local_conf:                            '{{ base_directory }}/config/prometheus/prometheus.service'
 remote_conf:                           '/etc/systemd/system/prometheus.service'
 
-playbook.yaml:
 
-playbooks:   
-# \___________________________________________________________________________________________________\_  
-- name:                                       'Manage Proxmox Containers' host:                                       'proxmox'  
-# \___________________________________________________________________________________________________\_  
-# playbook  
-tasks:  
-# \__________________________________________________________________________________________________\_
-# install mariadb
-- name:                                   'proxmox_mariadb_install_lxc'
-ignore_errors:                          'no'
-container_id:                           '{{ mariadb_node01_container_id }}'  
-vars:
-mariadb_package_to_install:           'mariadb-server'
-
-Inside configuration file:
-
-</etc/prometheus/config.yml>
-
-global:
-scrape_interval:     15s
-evaluation_interval: 15s
-
-rule_files:
-
-- "/etc/prometheus/alert_rules.yml"    # We'll store the CPU / memory / service-down alerts here
-
-alerting:
-alertmanagers:
-\- static_configs:
-\- targets:
-\- '{{ alertmanager_ip }}:9093'   # IP of your Alertmanager LXC
-
-scrape_configs:
-
-# job for prometheus
-
-- job_name: 'prometheus' static_configs: 
-  - targets: ['localhost:9090']
-
-# jobs to scrap data from exporters (PVE, NGINX, PHP-FPM, MARIADB,...)
-
-# Note for proxmox ssh
+## Note for proxmox ssh
 
 Ensure that your Proxmox server is properly configured to accept SSH connection
 
