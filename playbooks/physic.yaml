@@ -1,0 +1,301 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.test.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        #********************************************************************************************************
+        - name:                                       'Physic'
+          host:                                       'proxmox'        
+        # ______________________________________________________________________________________________________            
+        # playbook                  
+          tasks:  
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+
+            # --------------------------------------------------------------------------------------------
+            # Install + tune physical capture
+            - name:                                   'proxmox_physical_install'
+              ignore_errors:                          'no'              
+              vars:
+                  promfile_basename:                  'phy_metrics.prom'
+                  capture_duration:                   5                # seconds 
+                  interface:                          'eth0'           # like 'eth0'
+                  files_for_physic:
+                    - install: true
+                      name:                           'tshark-capture.py'
+                      local_conf:                     '{{ base_directory }}/config/physic/tshark-capture.py'
+                      remote_conf:                    '/usr/local/bin/tshark-capture.py'
+                    - install: true
+                      name:                           'tshark-capture.service'
+                      local_conf:                     '{{ base_directory }}/config/physic/tshark-capture.service'
+                      remote_conf:                    '/etc/systemd/system/tshark-capture.service'
+                    - install: true
+                      name:                           'tshark-capture.timer'
+                      local_conf:                     '{{ base_directory }}/config/physic/tshark-capture.timer'
+                      remote_conf:                    '/etc/systemd/system/tshark-capture.timer' 
+                   
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        #********************************************************************************************************
+        - name:                                       'Manage Proxmox Containers'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                  
+          tasks:  
+ 
+ 
+
+            #=====================================================================================================
+            #
+            # EXPORTERS
+            #===================================================================================================== 
+              
+            # ___________________________________________________________________________________________________
+            # install pve_exporter on proxmox
+            - name:                                   'proxmox_pve_exporter_install'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________
+            # install fail2ban_exporter on proxmox
+            - name:                                   'proxmox_fail2ban_exporter_install'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________
+            # node_exporter install
+            - name:                                   'proxmox_node_exporter_install'
+              ignore_errors:                          'no'
+
+
+
+            # ___________________________________________________________________________________________________ 
+            # tests prometehus
+            - name:                                   'proxmox_prometheus_tuning_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'  
+            # ___________________________________________________________________________________________________
+            # prometheus update exporters and alertes rules
+            - name:                                   'proxmox_merge_files_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'  
+              vars:
+                  # merge file 
+                  merge_files:                 
+
+                  # proxmox
+                  - name:                             'prometheus' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/prometheus.job'
+                    remote_file:                      '/tmp/prometheus.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                  - name:                             'prometheus_instance_alerts'
+                    local_file:                       '{{ base_directory }}/config/prometheus/prometheus.alert'
+                    remote_file:                      '/tmp/prometheus.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+                    
+                  # pve-exporter
+                  - name:                             'proxmox-pve-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-pve-exporter.job'
+                    remote_file:                      '/tmp/proxmox-pve-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                  - name:                             'proxmox-pve-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-pve-exporter.alert'
+                    remote_file:                      '/tmp/proxmox-pve-exporter.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+ 
+                  # node-exporter
+                  - name:                             'proxmox-node-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-node-exporter.job'
+                    remote_file:                      '/tmp/proxmox-node-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                    
+                  # fai2ban-exporter-proxmox
+                  - name:                             'proxmox-fail2ban-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-fail2ban-exporter.job'
+                    remote_file:                      '/tmp/proxmox-fail2ban-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                  - name:                             'proxmox-fail2ban-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-fail2ban-exporter.alert'
+                    remote_file:                      '/tmp/proxmox-fail2ban-exporter.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+
+                  # pfsense-node-exporter
+                  - name:                             'pfsense-node-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/pfsense-node-exporter.job'
+                    remote_file:                      '/tmp/pfsense-node-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+
+                  # nginx-exporter
+                  - name:                             'nginx-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/nginx-exporter.job'
+                    remote_file:                      '/tmp/nginx-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+ 
+                  # php-fpm-exporter
+                  - name:                             'php-fpm-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/php-fpm-exporter.job'
+                    remote_file:                      '/tmp/php-fpm-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+ 
+                   # postgres-exporter
+                  - name:                             'postgres-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/postgres-exporter.job'
+                    remote_file:                      '/tmp/postgres-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml' 
+ 
+            # ___________________________________________________________________________________________________ 
+            # tests prometehus
+            - name:                                   'proxmox_prometheus_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'  
+ 
+             # ___________________________________________________________________________________________________ 
+            #
+            - name:                                   'proxmox_alertmanager_tuning_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}' 
+ 
+            # ___________________________________________________________________________________________________ 
+            #
+            - name:                                   'proxmox_alertmanager_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}'   
+              
+            # ___________________________________________________________________________________________________ 
+            #
+            - name:                                   'proxmox_grafana_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ grafana_container_id }}' 
+
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_php_tuning_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+            # ___________________________________________________________________________________________________         
+            # 
+            - name:                                   'proxmox_php_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_php_fpm_tuning_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'    
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_php_fpm_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+              nextcloud_url:                          'cloud.nitep.com'              
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_nginx_tuning_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'                  
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_nginx_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'            
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_redis_tuning_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'     
+              
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_redis_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'                 
+              
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_redis_bench_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'      
+
+            # ___________________________________________________________________________________________________         
+            # install update_localhosts nginx 
+            - name:                                   'proxmox_nginx_update_localhosts_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+              vars:              
+                 nginx_localhosts:
+                 - install:                            true
+                   name:                               'localhost.conf' 
+                   local_conf:                         '{{ nginx_config_local }}/localhost_php.conf'
+                   remote_conf:                        '{{ nginx_conf_site_path }}/localhost.conf'               
+                 - install:                            true
+                   name:                               'www.ap-eagle.eu.conf' 
+                   local_conf:                         '{{ nginx_config_local }}/www.ap-eagle.eu.conf' 
+                   remote_conf:                        '{{ nginx_conf_site_path }}/www.ap-eagle.eu.conf' 
+                 - install:                            true
+                   name:                               'www.nitep.com.conf' 
+                   local_conf:                         '{{ nginx_config_local }}/www.nitep.com.conf' 
+                   remote_conf:                        '{{ nginx_conf_site_path }}/www.nitep.com.conf'
+                 - install:                            true
+                   name:                               'www.acjv.eu' 
+                   local_conf:                         '{{ nginx_config_local }}/www.acjv.eu.conf' 
+                   remote_conf:                        '{{ nginx_conf_site_path }}/www.acjv.eu.conf' 
+                 - install:                            true
+                   name:                               'cloud.nitep.com' 
+                   local_conf:                         '{{ nginx_config_local }}/cloud.nitep.com.conf' 
+                   remote_conf:                        '{{ nginx_conf_site_path }}/cloud.nitep.com.conf' 
+                 - install:                            true
+                   name:                               'cloud.acjv.eu' 
+                   local_conf:                         '{{ nginx_config_local }}/cloud.acjv.eu.conf' 
+                   remote_conf:                        '{{ nginx_conf_site_path }}/cloud.acjv.eu.conf'        
+          
+            # ___________________________________________________________________________________________________         
+            #
+            - name:                                   'proxmox_nginx_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'      
+
+            # ___________________________________________________________________________________________________ 
+            - name:                                   'proxmox_nextcloud_occ_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+              nextcloud_url:                          'cloud.nitep.com'
+              vars:              
+                 nextcloud_occ_files:
+                 - install:                            true
+                   name:                               'occ_apps'
+                   local_conf:                         '{{ base_directory }}/config/nextcloud/occ_apps'
+                   remote_conf:                        '/tmp/occ_apps'   
+            # ___________________________________________________________________________________________________ 
+            - name:                                   'proxmox_nextcloud_occ_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+              nextcloud_url:                          'cloud.nitep.com'
+              vars:              
+                 nextcloud_occ_files:
+                 - install:                            true
+                   name:                               'occ_maintenance'
+                   local_conf:                         '{{ base_directory }}/config/nextcloud/occ_maintenance'
+                   remote_conf:                        '/tmp/occ_maintenance'                
+ 
+            

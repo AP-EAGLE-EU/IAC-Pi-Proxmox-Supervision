@@ -1,0 +1,86 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.test.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        # ______________________________________________________________________________________________________  
+        - name:                                       'Manage Proxmox Containers'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                  
+          tasks:  
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+
+
+            #=====================================================================================================
+            #
+            # NOTIFICATION : ACEPTANCE FAILED (INIT)
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'Acceptance_status'     # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     0                       # 0 on failure / 1 success
+                    job_name:                         'Acceptance'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '123'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric           
+         
+            #=====================================================================================================
+            #
+            # NOTIFICATION : ACEPTANCE FAILED (INIT)
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'backup_status'         # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     0                       # 0 on failure / 1 success
+                    job_name:                         'proxmox_backup'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '161'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric                              
+
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'no'        
+              commands:              
+               - 'sleep 30' 
+
+     
+         
+            #=====================================================================================================
+            #
+            # NOTIFICATION : ACEPTANCE FAILED (INIT)
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'backup_status'         # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     1                       # 0 on failure / 1 success
+                    job_name:                         'proxmox_backup'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '161'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric       
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________
+        
+   

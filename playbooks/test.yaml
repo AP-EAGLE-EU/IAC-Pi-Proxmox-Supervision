@@ -1,0 +1,45 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.test.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        # ______________________________________________________________________________________________________  
+        - name:                                       'Manage Proxmox Containers'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                  
+          tasks:  
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+     
+         
+            # --------------------------------------------------------------------------------------------
+            # Install + tune physical capture
+            - name:                                   'proxmox_physical_install'
+              ignore_errors:                          'no'              
+              vars:
+                  promfile_basename:                  'phy_metrics.prom'
+                  capture_duration:                   5                # seconds 
+                  interface:                          'eth0'           # like 'eth0'
+                  files_for_physic:
+                    - install: true
+                      name:                           'tshark-capture.py'
+                      local_conf:                     '{{ base_directory }}/config/physic/tshark-capture.py'
+                      remote_conf:                    '/usr/local/bin/tshark-capture.py'
+                    - install: true
+                      name:                           'tshark-capture.service'
+                      local_conf:                     '{{ base_directory }}/config/physic/tshark-capture.service'
+                      remote_conf:                    '/etc/systemd/system/tshark-capture.service'
+                    - install: true
+                      name:                           'tshark-capture.timer'
+                      local_conf:                     '{{ base_directory }}/config/physic/tshark-capture.timer'
+                      remote_conf:                    '/etc/systemd/system/tshark-capture.timer'    
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________
+        
+   

@@ -1,0 +1,52 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.install.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        #********************************************************************************************************    
+        - name:                                       'Proxmox install'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                
+          tasks:
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+            - name:                                   'proxmox_create_ssh_keys'
+              ignore_errors:                          'no'
+            - name:                                   'proxmox_ssh_authorized_key_upload'
+              ignore_errors:                          'no'
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+
+            # ==================================================================================================
+            # Install Proxmox 
+            # ==================================================================================================
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'yes'           
+              commands:              
+                # update
+                - 'apt -y update'
+                - 'DEBIAN_FRONTEND=noninteractive apt-get -y full-upgrade'
+                - 'apt autoclean'
+                - 'apt clean'
+                
+                # dependencies
+                - 'sapt -y install curl wget ifupdown2'   
+                
+                # depot
+                - 'echo \"deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription\" | sudo tee /etc/apt/sources.list.d/pve-install-repo.list'
+                - 'wget -qO - http://download.proxmox.com/debian/proxmox-release-bookworm.gpg | sudo apt-key add -'
+                - 'DEBIAN_FRONTEND=noninteractive apt update && sudo apt upgrade -y' 
+                
+                # proxmox install
+                - 'curl https://global.mirrors.apqa.cn/proxmox/debian/pveport.gpg -o /etc/apt/trusted.gpg.d/pveport.gpg'
+                - 'echo \"deb [arch=arm64] https://global.mirrors.apqa.cn/proxmox/debian/pve bookworm port\" | sudo tee /etc/apt/sources.list.d/pveport.list'
+                - 'sudo apt -y update'
+                - 'sudo apt -y install proxmox-ve postfix open-iscsi chrony mmc-utils usbutils'
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________

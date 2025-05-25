@@ -1,0 +1,149 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.webserver.install.lxc.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        #********************************************************************************************************
+        - name:                                       'Web server install'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                  
+          tasks:  
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+
+            #=====================================================================================================
+            #
+            # WEB SERVER node01 SETUP
+            #=====================================================================================================
+            # create CT
+            - name:                                   'proxmox_create_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'               # (integer) Unique VM ID
+              vars:
+                # Basic VM Information                
+                hostname:                             '{{ nginx_node01_name }}'                       # (string) Name of the host
+                password:                             '{{ proxmox_password }}'
+                # Memory Settings
+                memory:                               2048                                            # (integer) RAM in MB
+                numa_enabled:                         false                                           # (boolean) Whether NUMA is enabled
+                swap:                                 1024                                            # (integer) Swap in MB
+                # CPU Settings  
+                cores:                                8                                               # (integer) Number of Cores
+                # OS Type & Other Options
+                os:
+                  ostype:                             'debian'                                        # (string) OS type
+                  numafabric:                         false                                           # (boolean)
+                  protection:                         false                                           # (boolean)
+                  ostemplate:                         'local:vztmpl/{{ proxmox_download_lxc_image_name }}.{{ proxmox_download_lxc_file_ext }}'
+                # Network Settings
+                network:
+                  name:                               'eth0'                                          # (string) Interface name
+                  bridge:                             'vmbr0'                                         # (string) Bridge interface
+                  firewall:                           false                                           # (boolean) Enable/disable firewall
+                  tag:                                ~                                               # (null) VLAN tag
+                  ip:                                 '{{ nginx_node01_ip }}/24'                      # (string) Static IP
+                  gateway:                            '{{ gateway_lan }}'                             # (string) Gateway                    
+                # Storage Settings
+                storage:
+                  rootfs:
+                    storage:                          'local'                                         # (string) Storage name  
+                    size:                             '25'                                            # (string) in gigabytes do not add G
+                # Advanced Settings
+                advanced:
+                  onboot:                             true                                            # (boolean) Start VM on boot
+                  startup:
+                    order:                            1                                               # (integer) Startup order
+                    up_delay:                         10                                              # (integer) Delay before starting
+                    down_delay:                       0                                               # (integer) Delay before shutting down
+                  # Critical for Grafana
+                  features:
+                    nesting:                          1                                               # (boolean) Allow nested containers
+                    keyctl:                           1                                               # (boolean) Enable kernel keyring           
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'no'        
+              commands:              
+               - 'pct start {{ nginx_node01_container_id }}'        
+            # ___________________________________________________________________________________________________
+            # install locale on lxc container
+            - name:                                   'proxmox_local_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'        
+            # ___________________________________________________________________________________________________ 
+            # install local on lxc
+            - name:                                   'proxmox_fix_timezone_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'    
+            # ___________________________________________________________________________________________________           
+            # upload web sites to lxc
+            - name:                                   'proxmox_upload_folders_or_files_lxc'              
+              ignore_errors:                          'no'              
+              container_id:                           '{{ nginx_node01_container_id }}'
+              folders:
+                - name:                               'www.ap-eagle.eu'
+                  local_folder:                       'C:\Users\USER04\Nextcloud\16.Ambroise\Python\config\website\www.ap-eagle.eu'
+                  remote_folder:                      '/var/www/html/www.ap-eagle.eu'  
+                - name:                               'localhost'
+                  local_folder:                       'C:\Users\USER04\Nextcloud\16.Ambroise\Python\config\website\localhost'
+                  remote_folder:                      '/var/www/html/localhost'               
+            # __________________________________________________________________________________________________               
+            # install postgresql-client
+            - name:                                   'proxmox_pgsql_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'   
+              vars: 
+                package_to_install:                   'postgresql-client'
+                sql_files:                 
+                - name:                               'test.sql'
+                  local_path:                         '{{ base_directory }}/config/pgsql/test.sql'
+                  remote_path:                        '/tmp/test.sql'               
+            # ___________________________________________________________________________________________________         
+            # install nginx
+            - name:                                   'proxmox_nginx_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+            # ___________________________________________________________________________________________________         
+            # install php
+            - name:                                   'proxmox_php_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'         
+            # ___________________________________________________________________________________________________         
+            # install update_localhosts nginx 
+            - name:                                   'proxmox_nginx_update_localhosts_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+              vars:              
+                 nginx_localhosts:
+                 - install:                            true
+                   name:                               'localhost.conf' 
+                   local_conf:                         '{{ nginx_config_local }}/localhost_php.conf'
+                   remote_conf:                        '{{ nginx_conf_site_path }}/localhost.conf'               
+                 - install:                            true
+                   name:                               'www.ap-eagle.eu.conf' 
+                   local_conf:                         '{{ nginx_config_local }}/www.ap-eagle.eu.conf' 
+                   remote_conf:                        '{{ nginx_conf_site_path }}/www.ap-eagle.eu.conf' 
+            # ___________________________________________________________________________________________________         
+            # check 
+            - name:                                   'proxmox_nginx_sites_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+            # ___________________________________________________________________________________________________
+            # install nginx-exporter
+            - name:                                   'proxmox_nginx_exporter_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'   
+            # ___________________________________________________________________________________________________
+            # install php-fpm-exporter
+            - name:                                   'proxmox_php_fpm_exporter_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'
+          
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________

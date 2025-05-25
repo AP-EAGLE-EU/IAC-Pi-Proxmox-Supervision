@@ -1,0 +1,237 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.acceptance.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        #********************************************************************************************************
+        - name:                                       'Acceptance'
+          host:                                       'proxmox'          
+          # playbook         
+          tasks:  
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+
+            #=====================================================================================================
+            #
+            # NOTIFICATION : ACCEPTANCE FAILED
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'Acceptance_status'     # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     0                       # 0 on failure / 1 success
+                    job_name:                         'Acceptance'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '123'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric      
+
+            #=====================================================================================================
+            #
+            # NOTIFICATION : BACKUP FAILED
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'backup_status'         # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     0                      # 0 on failure / 1 success
+                    job_name:                         'proxmox_backup'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '123'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric       
+
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'no'        
+              commands:              
+               - 'sleep 30' 
+ 
+ 
+            #=====================================================================================================
+            #
+            # NOTIFICATION : BACKUP RESOLVED
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'backup_status'         # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     1                       # 0 on failure / 1 success
+                    job_name:                         'proxmox_backup'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '123'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric       
+
+
+            #=====================================================================================================
+            #
+            # TESTS PROXMOX
+            #=====================================================================================================               
+            # ___________________________________________________________________________________________________ 
+            # test proxmox
+            - name:                                   'proxmox_health_check'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________ 
+            # test proxmox
+            - name:                                   'proxmox_smtp_up'
+              ignore_errors:                          'no'              
+            # ___________________________________________________________________________________________________ 
+            # tests fail2ban
+            - name:                                   'proxmox_fail2ban_up'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________ 
+            # tests fail2ban
+            - name:                                   'proxmox_fail2ban_status'
+              ignore_errors:                          'no' 
+            # ___________________________________________________________________________________________________ 
+            # test clamav
+            - name:                                   'proxmox_clamav_up'
+              ignore_errors:                          'no'
+
+              
+            #=====================================================================================================
+            #
+            # TESTS SUPERVISION INSTLLATION
+            #=====================================================================================================               
+            # ___________________________________________________________________________________________________ 
+            # tests prometehus
+            - name:                                   'proxmox_prometheus_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'   
+            # ___________________________________________________________________________________________________ 
+            # test alertmanager
+            - name:                                   'proxmox_alertmanager_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}'   
+            # ___________________________________________________________________________________________________ 
+            # test grafana
+            - name:                                   'proxmox_grafana_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ grafana_container_id }}'                
+
+
+            #=====================================================================================================
+            #
+            # TESTS WEB SERVER INSTALLATION (NODE01)
+            #=====================================================================================================               
+            # ___________________________________________________________________________________________________ 
+            # test nginx
+            - name:                                   'proxmox_nginx_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'        
+            # ___________________________________________________________________________________________________ 
+            # test php
+            - name:                                   'proxmox_php_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'              
+            # ___________________________________________________________________________________________________ 
+            # test php-fpm
+            - name:                                   'proxmox_php_fpm_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'     
+            # ___________________________________________________________________________________________________ 
+            # test sites
+            - name:                                   'proxmox_nginx_sites_up_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ nginx_node01_container_id }}'                         
+
+
+            #=====================================================================================================
+            #
+            # TESTS DB SERVER INSTALLATION (NODE01)
+            #=====================================================================================================               
+            # ___________________________________________________________________________________________________
+            # test postgresql 
+            - name:                                   'proxmox_pgsql_excute_sql_files_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ pgsql_node01_container_id }}'   
+              vars: 
+                package_to_install:                   'postgresql-server'
+                sql_files:                 
+                - name:                               'test.sql'
+                  local_path:                         '{{ base_directory }}/config/pgsql/test.sql'
+                  remote_path:                        '/tmp/test.sql'                
+                  remote_path:                        '/tmp/test.sql' 
+
+
+            #=====================================================================================================
+            #
+            # TESTS FIREWALL
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            # test firewall             
+            - name:                                   'proxmox_firewall_up'
+              vars:
+                firewall_tests:
+                  # prometheus
+                  - name:                             'prometheus external check'
+                    ip:                               '{{ prometheus_ip }}' 
+                    port:                             9090
+                    expect:                           'allow'   # or "block"                
+                  # alertemanager
+                  - name:                             'alertmanager external check'
+                    ip:                               '{{ alertmanager_ip }}' 
+                    port:                             9093
+                    expect:                           'allow'   # or "block"
+                  # grafan
+                  - name:                             'grafana external check'
+                    ip:                               '{{ grafana_ip }}' 
+                    port:                             3000
+                    expect:                           'allow'   # or "block"                    
+                  # nginx
+                  - name:                             'http external check'
+                    ip:                               '{{ nginx_node01_ip }}' 
+                    port:                             80
+                    expect:                           'allow'
+                  # postgresql 
+                  - name:                             'postgresql external check'
+                    ip:                               '{{ pgsql_vip }}' 
+                    port:                             5432
+                    expect:                           'allow'
+    
+    
+            #=====================================================================================================
+            #
+            # TESTS Strees tests / CPU, RAM, LXC STOP & RESTART
+            #=====================================================================================================
+            # Strees test
+            - name:                                   'proxmox_stress'
+              ignore_errors:                          'no'
+              vars:
+               cpu_target:                            91     # %
+               duration:                              60     # sec
+               lxc_id_to_stop:                        184
+
+
+            #=====================================================================================================
+            #
+            # NOTIFICATION : ACCEPTANCE RESOLVED
+            #===================================================================================================== 
+            # ___________________________________________________________________________________________________
+            #
+            - name:                                   'proxmox_pushgateway_notify'
+              ignore_errors:                          'no'
+              vars:
+                    metric_name:                      'Acceptance_status'     # as defined in alerting configutation of /etc/prometheus/config.yml
+                    metric_value:                     1                       # 0 on failure / 1 success
+                    job_name:                         'Acceptance'
+                    pushgateway_delay:                30                      # wait for scraping in sec
+                    labels:
+                      vm_id:                          '123'                   # CT/VM ID 
+                    wait_for_prometheus:               true                   # Wait for Prometheus scrape 
+                    delete_after_push:                 false                  # Delete or not the metric     

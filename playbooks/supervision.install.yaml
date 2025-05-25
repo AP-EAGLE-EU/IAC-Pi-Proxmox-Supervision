@@ -1,0 +1,330 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.supervision.install.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        # ********************************************************************************************************
+        - name:                                       'Manage Proxmox Containers'
+          host:                                       'proxmox'          
+          # ______________________________________________________________________________________________________            
+          # playbook                 
+          tasks:
+          
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+
+            #=====================================================================================================
+            #
+            # PROMETHEUS CONTAINER SETUP
+            #=====================================================================================================
+            # create CT
+            - name:                                   'proxmox_create_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'                # (integer) Unique VM ID
+              vars:
+                # Basic VM Information
+                hostname:                            '{{ prometheus_host_name }}'                    # (string) Name of the host
+                password:                            '{{ proxmox_password }}'
+                # Memory Settings
+                memory:                              2048                                            # (integer) RAM in MB
+                numa_enabled:                        false                                           # (boolean) Whether NUMA is enabled
+                swap:                                1024                                            # (integer) Swap in MB
+                # CPU Settings  
+                cores:                               2                                               # (integer) Number of Cores
+                # OS Type & Other Options
+                os:
+                  ostype:                            'debian'                                        # (string) OS type
+                  numafabric:                        false                                           # (boolean)
+                  protection:                        false                                           # (boolean)
+                  ostemplate:                        'local:vztmpl/{{ proxmox_download_lxc_image_name }}.{{ proxmox_download_lxc_file_ext }}'
+                # Network Settings
+                network:
+                  name:                              'eth0'                                          # (string) Interface name
+                  bridge:                            'vmbr0'                                         # (string) Bridge interface
+                  firewall:                          false                                           # (boolean) Enable/disable firewall
+                  tag:                               ~                                               # (null) VLAN tag
+                  ip:                                '{{ prometheus_ip }}/24'                        # (string) Static IP
+                  gateway:                           '{{ gateway_lan }}'                             # (string) Gateway                    
+                # Storage Settings
+                storage:
+                  rootfs:
+                    storage:                         'local'                                         # (string) Storage name  
+                    size:                            '35'                                            # (string) in gigabytes do not add G
+                # Advanced Settings
+                advanced:
+                  onboot:                            true                                            # (boolean) Start VM on boot
+                  startup:
+                    order:                           1                                               # (integer) Startup order
+                    up_delay:                        10                                              # (integer) Delay before starting
+                    down_delay:                      0                                               # (integer) Delay before shutting down
+                  # Critical for Grafana
+                  features:
+                    nesting:                         1                                               # (boolean) Allow nested containers
+                    keyctl:                          1                                               # (boolean) Enable kernel keyring
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'yes'        
+              commands:              
+               - 'pct start {{ prometheus_container_id }}'
+            # ___________________________________________________________________________________________________
+            # install locale on lxc container
+            - name:                                   'proxmox_local_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'        
+            # ___________________________________________________________________________________________________ 
+            # install prometehus on lxc
+            - name:                                   'proxmox_fix_timezone_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'    
+            # ___________________________________________________________________________________________________ 
+            # install prometehus on lxc
+            - name:                                   'proxmox_prometheus_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'                      
+            # ___________________________________________________________________________________________________
+            # prometheus update exporters and alertes rules
+            - name:                                   'proxmox_merge_files_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ prometheus_container_id }}'  
+              vars:
+                  # merge file 
+                  merge_files:                 
+
+                  # proxmox
+                  - name:                             'prometheus' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/prometheus.job'
+                    remote_file:                      '/tmp/prometheus.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                  - name:                             'prometheus_instance_alerts'
+                    local_file:                       '{{ base_directory }}/config/prometheus/prometheus.alert'
+                    remote_file:                      '/tmp/prometheus.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+                    
+                  # pve-exporter
+                  - name:                             'proxmox-pve-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-pve-exporter.job'
+                    remote_file:                      '/tmp/proxmox-pve-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                  - name:                             'proxmox-pve-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-pve-exporter.alert'
+                    remote_file:                      '/tmp/proxmox-pve-exporter.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+ 
+                  # node-exporter
+                  - name:                             'proxmox-node-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-node-exporter.job'
+                    remote_file:                      '/tmp/proxmox-node-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                    
+                  # fai2ban-exporter-proxmox
+                  - name:                             'proxmox-fail2ban-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-fail2ban-exporter.job'
+                    remote_file:                      '/tmp/proxmox-fail2ban-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+                  - name:                             'proxmox-fail2ban-exporter'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-fail2ban-exporter.alert'
+                    remote_file:                      '/tmp/proxmox-fail2ban-exporter.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+
+                  # pfsense-node-exporter
+                  - name:                             'pfsense-node-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/pfsense-node-exporter.job'
+                    remote_file:                      '/tmp/pfsense-node-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+
+                  # nginx-exporter
+                  - name:                             'nginx-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/nginx-exporter.job'
+                    remote_file:                      '/tmp/nginx-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+ 
+                  # php-fpm-exporter
+                  - name:                             'php-fpm-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/php-fpm-exporter.job'
+                    remote_file:                      '/tmp/php-fpm-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml'
+ 
+                  # postgres-exporter
+                  - name:                             'postgres-exporter' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/postgres-exporter.job'
+                    remote_file:                      '/tmp/postgres-exporter.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml' 
+
+                  # proxmox-pushgateway
+                  - name:                             'proxmox-pushgateway' 
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-pushgateway.job'
+                    remote_file:                      '/tmp/proxmox-pushgateway.job'
+                    remote_merge_file:                '/etc/prometheus/prometheus.yml' 
+                  - name:                             'proxmox-pushgateway'
+                    local_file:                       '{{ base_directory }}/config/prometheus/proxmox-pushgateway.alert'
+                    remote_file:                      '/tmp/proxmox-pushgateway.alert'
+                    remote_merge_file:                '/etc/prometheus/alert_rules.yml'
+
+            #=====================================================================================================
+            #
+            # ALERTMANAGER CONTAINER SETUP
+            #=====================================================================================================
+            # create CT
+            - name:                                   'proxmox_create_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}'              # (integer) Unique VM ID
+              vars:
+                # Basic VM Information
+                hostname:                            '{{ alertmanager_host_name }}'                  # (string) Name of the host
+                password:                            '{{ proxmox_password }}'
+                # Memory Settings
+                memory:                              2048                                            # (integer) RAM in MB
+                numa_enabled:                        false                                           # (boolean) Whether NUMA is enabled
+                swap:                                1024                                            # (integer) Swap in MB
+                # CPU Settings  
+                cores:                               2                                               # (integer) Number of Cores
+                # OS Type & Other Options
+                os:
+                  ostype:                            'debian'                                        # (string) OS type
+                  numafabric:                        false                                           # (boolean)
+                  protection:                        false                                           # (boolean)
+                  ostemplate:                         'local:vztmpl/{{ proxmox_download_lxc_image_name }}.{{ proxmox_download_lxc_file_ext }}'
+                # Network Settings
+                network:
+                  name:                              'eth0'                                          # (string) Interface name
+                  bridge:                            'vmbr0'                                         # (string) Bridge interface
+                  firewall:                          false                                           # (boolean) Enable/disable firewall
+                  tag:                               ~                                               # (null) VLAN tag
+                  ip:                                '{{ alertmanager_ip }}/24'                      # (string) Static IP
+                  gateway:                           '{{ gateway_lan }}'                             # (string) Gateway                    
+                # Storage Settings
+                storage:
+                  rootfs:
+                    storage:                         'local'                                         # (string) Storage name  
+                    size:                            '20'                                            # (string) in gigabytes do not add G
+                # Advanced Settings
+                advanced:
+                  onboot:                            true                                            # (boolean) Start VM on boot
+                  startup:
+                    order:                           1                                               # (integer) Startup order
+                    up_delay:                        10                                              # (integer) Delay before starting
+                    down_delay:                      0                                               # (integer) Delay before shutting down
+                  # Critical for Grafana
+                  features:
+                    nesting:                         1                                               # (boolean) Allow nested containers
+                    keyctl:                          1                                               # (boolean) Enable kernel keyring
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'yes'        
+              commands:              
+               - 'pct start {{ alertmanager_container_id }}'  
+            # ___________________________________________________________________________________________________
+            # fix timezone for container
+            - name:                                   'proxmox_fix_timezone_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}'                   
+            # ___________________________________________________________________________________________________
+            # install locale on lxc container
+            - name:                                   'proxmox_local_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}'               
+            # ___________________________________________________________________________________________________ 
+            # install alertmanager on lxc
+            - name:                                   'proxmox_alertmanager_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ alertmanager_container_id }}'
+              
+        #********************************************************************************************************    
+        - name:                                       'exit'
+        #********************************************************************************************************
+
+
+
+
+         
+        #********************************************************************************************************
+        - name:                                       'Manage Proxmox Containers'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                 
+          tasks: 
+ 
+ 
+
+            #=====================================================================================================
+            #
+            # GRAFANA CONTAINER SETUP
+            #=====================================================================================================
+            # ___________________________________________________________________________________________________
+            # create CT
+            - name:                                   'proxmox_create_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ grafana_container_id }}'                   # (integer) Unique VM ID
+              vars:
+                # Basic VM Information                
+                hostname:                            '{{ grafana_host_name }}'                       # (string) Name of the host
+                password:                            '{{ proxmox_password }}'
+                # Memory Settings
+                memory:                              2048                                            # (integer) RAM in MB
+                numa_enabled:                        false                                           # (boolean) Whether NUMA is enabled
+                swap:                                1024                                            # (integer) Swap in MB
+                # CPU Settings  
+                cores:                               2                                               # (integer) Number of Cores
+                # OS Type & Other Options
+                os:
+                  ostype:                            'debian'                                        # (string) OS type
+                  numafabric:                        false                                           # (boolean)
+                  protection:                        false                                           # (boolean)
+                  ostemplate:                         'local:vztmpl/{{ proxmox_download_lxc_image_name }}.{{ proxmox_download_lxc_file_ext }}'
+                # Network Settings
+                network:
+                  name:                              'eth0'                                          # (string) Interface name
+                  bridge:                            'vmbr0'                                         # (string) Bridge interface
+                  firewall:                          false                                           # (boolean) Enable/disable firewall
+                  tag:                               ~                                               # (null) VLAN tag
+                  ip:                                '{{ grafana_ip }}/24'                           # (string) Static IP
+                  gateway:                           '{{ gateway_lan }}'                             # (string) Gateway                    
+                # Storage Settings
+                storage:
+                  rootfs:
+                    storage:                         'local'                                         # (string) Storage name  
+                    size:                            '50'                                            # (string) in gigabytes do not add G
+                # Advanced Settings
+                advanced:
+                  onboot:                            true                                            # (boolean) Start VM on boot
+                  startup:
+                    order:                           1                                               # (integer) Startup order
+                    up_delay:                        10                                              # (integer) Delay before starting
+                    down_delay:                      0                                               # (integer) Delay before shutting down
+                  # Critical for Grafana
+                  features:
+                    nesting:                         1                                               # (boolean) Allow nested containers
+                    keyctl:                          1                                               # (boolean) Enable kernel keyring
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'yes'        
+              commands:              
+               - 'pct start {{ grafana_container_id }}'     
+            # ___________________________________________________________________________________________________
+            # fix timezone for container
+            - name:                                   'proxmox_fix_timezone_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ grafana_container_id }}'                   
+            # ___________________________________________________________________________________________________
+            # install locale on lxc container
+            - name:                                   'proxmox_local_install_lxc'
+              ignore_errors:                          'no'
+              container_id:                           '{{ grafana_container_id }}'
+            # ___________________________________________________________________________________________________ 
+            # install grafana lxc
+            - name:                                   'proxmox_grafana_install_lxc'
+              ignore_errors:                          'no'
+              vars:              
+                container_id:                         '{{ grafana_container_id }}'      
+    
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________
+ 

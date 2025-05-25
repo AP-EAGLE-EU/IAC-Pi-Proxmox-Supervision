@@ -1,0 +1,87 @@
+# ------------------------------------------------------------------------------------------
+#    name: proxmox.post.install.yaml
+#
+# ------------------------------------------------------------------------------------------
+playbooks:
+
+        #********************************************************************************************************    
+        - name:                                       'Post install Proxmox'
+          host:                                       'proxmox'          
+        # ______________________________________________________________________________________________________            
+        # playbook                
+          tasks:
+            # ==================================================================================================
+            # ssh 
+            # ==================================================================================================
+            - name:                                   'proxmox_ssh_open_with_private_key'
+              ignore_errors:                          'no'
+              
+            # ___________________________________________________________________________________________________
+            # post install 
+            - name:                                   'proxmox_post_install'
+              ignore_errors:                          'no'
+           #- name:                                   'proxmox_xrdp_install'
+           #  ignore_errors:                          'no'
+            - name:                                   'proxmox_health_check'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________
+            # commands
+            - name:                                   'proxmox_commands'
+              ignore_errors:                          'yes'           
+              commands:              
+                # Refresh package index – no confirmation prompt is ever needed here
+                - 'apt -y update'
+                
+                # Apply available upgrades non-interactively   
+                - 'DEBIAN_FRONTEND=noninteractive apt-get -y full-upgrade'
+                
+                # Remove orphaned dependencies & clean cache    
+                - 'apt list --upgradable'
+                - 'apt-get -y autoremove'
+                - 'apt-get clean'                                                
+            # ___________________________________________________________________________________________________
+            # Upload and patch LXC Debian template image
+            - name:                                   'proxmox_upload_image'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________         
+            # upload data center Notes
+            - name:                                   'proxmox_upload_folders_or_files'
+              ignore_errors:                          'no'
+              folders:
+                - name:                               'datacenter_notes'
+                  local_folder:                       '{{ base_directory }}/config/proxmox/notes.txt'
+                  remote_folder:                      '/etc/pve/datacenter.cfg'
+            # ___________________________________________________________________________________________________
+            # Setup smtp email notification
+            - name:                                   'proxmox_smtp_setup'
+              ignore_errors:                          'no'                  
+            # ___________________________________________________________________________________________________         
+            # install fail2ban on proxmox 
+            - name:                                   'proxmox_fail2ban_install'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________    
+            # install clamav on proxmox 
+            - name:                                   'proxmox_clamav_install'
+              ignore_errors:                          'no'    
+
+
+            #=====================================================================================================
+            # Install all exporters for proxmox 
+            #===================================================================================================== 
+             
+            # ___________________________________________________________________________________________________
+            # install pve_exporter on proxmox
+            - name:                                   'proxmox_pve_exporter_install'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________
+            # install fail2ban_exporter on proxmox
+            - name:                                   'proxmox_fail2ban_exporter_install'
+              ignore_errors:                          'no'
+            # ___________________________________________________________________________________________________
+            # node_exporter install
+            - name:                                   'proxmox_node_exporter_install'
+              ignore_errors:                          'no'
+               
+        # ______________________________________________________________________________________________________    
+        - name:                                       'exit'
+        # ______________________________________________________________________________________________________
