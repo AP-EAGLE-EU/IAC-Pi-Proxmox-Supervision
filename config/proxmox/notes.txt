@@ -1,39 +1,34 @@
-## Projet d'entreprise Cloud Temple / FenelonSup
-#
-# Ambroise Pétin BTS CIEL 2025
-#
 ## Objectif : 
-# Le projet consiste à déployer une infrastructure virtualisée avec Proxmox et un système de supervision avancé.
+# The project aims to deploy a virtualized infrastructure using Proxmox, along with an advanced monitoring system.
 #
-## Problématique :
-# Proxmox n'inclus pas de solution de supervision.
+## Problem statement :
+# Proxmox does not include out-the-box a built-in monitoring solution .
 #
-# Proxmox n'inclus pas d'antivirus ni de protection de type 'brute force' pour les accès web et SSH.
+# Proxmox also lacks integrated antivirus protection and brute-force protection for web and SSH access.
 #
 ## Solution :
-# 1/ Installation d'un système de monitoring (Prometheus, Alertmanager, Grafana) pour surveiller l’état du server Proxmox (host) :
-# VM, CT, RAM, CPU, Disques,....
+# Install a monitoring system (Prometheus, Alertmanager, Grafana) to supervise the status of the Proxmox server (host), including VMs, containers, RAM, CPU, disks, and more.
 #
-# et les sous-systèmes : web server, base de données,... transmis par des 'Exporters' en 'pull' via HTTP/metrics
+# In addition, monitor subsystems such as the web server and database, using “Exporters” that expose metrics via HTTP/metrics using a pull model.
 #
-# 2/ Installation d'un antivirus (clamav)
+# 2/ Install antivirus protection (ClamAV).
 #
-# 3/ Installation d'un système d'analyse de logs à la recherche de comportements malveillants de type 'brute force' (Fail2ban)
+# 3/ Set up a log analysis system to detect malicious behavior such as brute-force attacks (Fail2ban).
 #
-## Réalisation
-# Utilisation de conteneurs Proxmox (LXC) pour le système de monitoring (Prometheus, Alertmanager, Grafana) qui permet des gains de 20% par rapport à une machine virtuelle.
-# 
-# Installation d'un serveur Web et d'une base de données pour vérifier la supervision des les sous-systèmes part le le système de monitoring.
+## Implementation
+# The monitoring stack (Prometheus, Alertmanager, Grafana) is deployed in Proxmox containers (LXC), which saves approximately 20% in resource usage compared to using virtual machines.
 #
-# Utilisation de scritpts python / yaml pour automatiser l'installation et les tests.
+# A web server and database are installed to verify that the monitoring system can supervise all relevant subsystems.
+#
+# Python and YAML scripts are used to automate installation and testing..
 #
 #
-## Architecture du projet :
+## Project Architecture:
 #```
 #    ┌─────────────────────┐     ┌─────────────────────┐               ┌─────────────────────┐
 #    │ Proxmox (Host)      │     │  prometheus (LXC)   │               │  alertmanager (LXC) │
 #    │ clamav              │     │                     │               │                     │
-#    │ fail2ban            │     │     datastore       │   pushAlerts  │     Notification    │  ─────> Notification (Mail) ✓
+#    │ fail2ban            │     │     datastore       │   pushAlerts  │     Notification    │  ─────> Notification (Mail)
 #    │ pve-exporter        │     │      (TSDB)         │    ────>      │                     │
 #    │ fail2ban-exporter   │     │                     │               │                     │     
 #    └─────────────────────┘     └─────────────────────┘               └─────────────────────┘
@@ -49,44 +44,11 @@
 #    │ web-node01 (LXC)    │     │  pgsql-node01 (LXC) │               │    grafana (LXC)    │
 #    │ nginx               │     │  postgresql-server  │               │                     │
 #    │ nginx-exporter      │     │  postgresql-exporter│               │                     │
-#    │ php-fpm             │     │                     │               │                     │   ─────> Dashboards ✓
+#    │ php-fpm             │     │                     │               │                     │   ─────> Dashboards
 #    │ php-fpm-exporter    │     │                     │               │                     │
 #    │ pgsql-client        │     │                     │               │                     │
 #    └─────────────────────┘     └─────────────────────┘               └─────────────────────┘  
 #
 #```
-#
-## Explication de l'architecture
-#
-# La solution de supervision proposée (Prometheus, Alertmanager, Grafana) est recommandée pour l’infrastructure Cloud (public, privé, sur site) utilisant des conteneurs gérés par Kubernetes ou directement par proxmox. 
-#
-# Des 'Exporters' affiche en mode pull des métriques sous HTML. Chaque sous système base de données, server web a un son propre 'Exporter'.
-#
-#
-# Liste des 'Exporters' mis en oeuvre dans l'architecture proposée 
-#
-# proxmox   : pve-exporter ✓
-#
-#             fail2ban-exporter ✓
-#
-# nginx     : nginx-exporter ✓
-#
-# php-fpm   : php-fpm-exporter ✓
-#
-# postgresql: postgresql-exporter ✓
-#
-#Le modèle pull-based de Prometheus facilite l'intégration de nouveaux ‘Exporters’ sans dépendance centrale, favorisant l'émergence continue de solutions communautaires. Les métriques sont exposées sur des endpoints HTTP standardisés (/metrics) au format OpenMetrics.
-#
-# Prometheus récupère les métriques des 'Exporter' via un système de « scraping » simple, qui interroge les hôtes. Prometheus stocke ces données dans une Time Series Data Base (TSDB). On peut interroger la base de données TSDB via le language de requête PromQL. Cette base peut gérer un volume important de données, mais elle n’est pas officiellement conçue pour un stockage à long terme. Ainsi, après un certain temps, les données sont souvent transférées vers une autre solution de stockage (comme Influxdb), tout en restant accessibles via PromQL.
-#
-# Grafana va interroger la base de données TSDB de prometheus pour afficher des tableaux de bord.
-#
-# La gestion des alertes est réalisée par Alertmanager en liaison avec Prometheus en fonction de seuils.
-#
-# L'architecture peut être complétée avec : 
-#
-# Une base de donnée type influxdb pour le stockage des métriques en temps réel (données chaudes) et un datalake (données froides) pour l'analyse des logs / traces.
-# 
-# Des compléments de données de télémétries peuvent être ajoutés avec OpenTelemetry qui collecte (en plus des traces et des logs) des métriques via une API unifiée.
-#
+
 keyboard: fr
