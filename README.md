@@ -58,7 +58,7 @@ Main features include:
 . Centralized logging of playbook runs
 
 The provided playbooks automate the installation of the monitoring stack and various services such as web servers and databases. Before running the playbooks, you must configure several YAML files (network addressing, IPs for Prometheus, Alertmanager, Grafana, user accounts, passwords, and other settings).
-            
+
             
 # Pinciples substitution to handle placeholders like:
 
