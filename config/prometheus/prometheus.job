@@ -1,0 +1,12 @@
+
+  # block_begin: prometheus
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+            alias: "Proxmox_host"    
+            
+  # block_end: prometheus
+

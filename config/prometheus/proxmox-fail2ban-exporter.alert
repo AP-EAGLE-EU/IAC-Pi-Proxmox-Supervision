@@ -1,0 +1,64 @@
+{% raw %}
+    # block_begin: proxmox-fail2ban-exporter
+    # ------------------------------------------------------------------------------------------
+    - name: proxmox-fail2ban-exporter
+      rules:
+        # -----------------------------------------------
+        # Fail2ban Service Status
+        # -----------------------------------------------
+        - alert: Fail2banServiceDown
+          expr: fail2ban_up == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Fail2Ban exporter is down"
+            description: "The Fail2Ban Prometheus exporter has not been reporting for more than 2 minutes."
+
+        # -----------------------------------------------
+        # Jail Status Monitoring
+        # -----------------------------------------------
+        - alert: JailDown
+          expr: fail2ban_jail_status{status="inactive"} == 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Fail2Ban jail {{ $labels.jail }} is inactive"
+            description: "Fail2Ban jail '{{ $labels.jail }}' is not active. It may not be protecting the system."
+
+        # -----------------------------------------------
+        # Ban Activity Alerts
+        # -----------------------------------------------
+        - alert: HighBanRateWarning
+          expr: rate(fail2ban_banned_total[5m]) > 5
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High number of bans detected in Fail2Ban"
+            description: "More than 5 bans occurred within 5 minutes in jail {{ $labels.jail }}."
+
+        - alert: HighBanRateCritical
+          expr: rate(fail2ban_banned_total[5m]) > 10
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical ban rate detected in Fail2Ban"
+            description: "More than 10 bans occurred within 5 minutes in jail {{ $labels.jail }}. Potential brute-force attack?"
+
+        # -----------------------------------------------
+        # Jail Error Alerts
+        # -----------------------------------------------
+        - alert: JailErrorDetected
+          expr: fail2ban_jail_errors_total > 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Errors detected in Fail2Ban jail {{ $labels.jail }}"
+            description: "Fail2Ban jail '{{ $labels.jail }}' has encountered errors. Total errors: {{ $value }}"
+
+    # block_end: proxmox-fail2ban-exporter
+{% endraw %}

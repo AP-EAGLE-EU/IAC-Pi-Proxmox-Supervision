@@ -1,0 +1,11 @@
+
+  # block_begin: nginx-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'nginx-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:   ['{{ nginx_node01_ip }}:9113']           # nginx_node01_ip.
+        labels:
+            alias: "nginx_node01"
+
+  # block_end: nginx-exporter

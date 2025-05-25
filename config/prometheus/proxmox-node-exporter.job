@@ -1,0 +1,12 @@
+
+  # block_begin: proxmox-node-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'proxmox-node-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - '{{ proxmox_host_ip }}:9100'                 # Proxmox node-expoerter proxmox
+        labels:
+            alias: "Proxmox_host"      
+        
+  # block_end: proxmox-node-exporter

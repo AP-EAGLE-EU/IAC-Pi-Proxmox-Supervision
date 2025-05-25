@@ -1,0 +1,11 @@
+
+  # block_begin: pfsense-node-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: pfsense-node-exporter
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - '{{ pfsense_ip_primary }}:9100'         # pfsense primary IP.
+        
+  # block_end: pfsense-node-exporter
+

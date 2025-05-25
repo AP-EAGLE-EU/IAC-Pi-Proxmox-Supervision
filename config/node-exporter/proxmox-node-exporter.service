@@ -1,0 +1,22 @@
+# Path:/etc/systemd/system/node-exporter.service
+
+[Unit] 
+Description=Prometheus Node Exporter
+Wants=network-online.target 
+After=network-online.target
+
+[Service] 
+User={{ node_exporter_user_for_service }}
+Group={{ node_exporter_user_for_service }}
+Restart=always
+RestartSec=1
+WorkingDirectory=/opt/node-exporter
+ExecStart=/opt/node-exporter/bin/node_exporter \
+          --collector.ethtool \
+          --collector.systemd \
+          --collector.textfile.directory={{ node_exporter_textfile_dir }}
+Restart=always
+RestartSec=5
+    
+[Install]
+WantedBy=multi-user.target

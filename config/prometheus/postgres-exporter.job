@@ -1,0 +1,16 @@
+
+  # block_begin: postgres-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'postgres-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:   ['{{ pgsql_vip }}:9187']           # postgres-exporter for pgsql_vip.
+        labels:
+          "alias": "pgsql_vip"
+          
+      - targets:   ['{{ pgsql_node01_ip }}:9187']           # postgres-exporter for pgsql_node01_ip.
+        labels:
+          "alias": "pgsql_node01"                  
+          
+  # block_end: postgres-exporter
+

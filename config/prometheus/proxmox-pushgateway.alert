@@ -1,0 +1,76 @@
+{% raw %}
+    # block_begin: proxmox-pushgateway
+    # ------------------------------------------------------------------------------------------
+    - name: proxmox-pushgateway
+      rules:
+
+        # BackupFailed fires instantly on a value 0.
+        #
+        # BackupMissing never fires as long as at least one successful backup ran in the last 24 h.
+        # 
+        # BackupTooOld fires if the last sample (success or failure) is older than 48 h.
+
+
+        # -----------------------------------------------
+        # Backup Alerts
+        # -----------------------------------------------
+        - alert: BackupFailed
+          expr: backup_status == 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Backup failed for ID {{ $labels.vm_id }}"
+            description: "The last backup for VM {{$labels.vm_id}} returned a failure code."
+
+        - alert: BackupMissing
+          expr: absent(backup_status{job="proxmox_backup"})
+          for: 24h
+          labels:
+            severity: warning
+          annotations:
+            summary: "No backup metrics received in 24h"
+            description: "No backup_status has been pushed to Pushgateway in the last 24 hours."
+            
+        - alert: BackupTooOld
+          expr: (time() - timestamp(backup_status{job="proxmox_backup"})) > 172800
+          for: 10m
+          labels:
+            severity: info
+          annotations:
+            summary: "Backup too old for VM {{ $labels.vm_id }}"
+            description: "The last backup was pushed more than 48h ago to Pushgateway."          
+         
+         
+        # -----------------------------------------------
+        # Restore Alerts
+        # -----------------------------------------------
+        - alert: RestoreFailed
+          expr: restore_status == 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Restore failed for ID {{ $labels.vm_id }}"
+            description: "The last restore for VM {{$labels.vm_id}} returned a failure code."
+
+
+        # -----------------------------------------------
+        # Acceptance Alerts
+        # -----------------------------------------------
+
+        # Immediate failure if any Acceptance_status == 0
+        - alert: AcceptanceFailed
+          expr: Acceptance_status{job="Acceptance"} == 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Acceptance tests failed"
+            description: |
+              One or more of your Proxmox acceptance tests (stress, LXC stop/restart, etc.) 
+              returned a failure code (metric Acceptance_status == 0).
+
+ 
+    # block_end: proxmox-pushgateway
+{% endraw %}

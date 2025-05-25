@@ -1,0 +1,8 @@
+
+  # block_begin: prometheus-pushgateway
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'prometheus-pushgateway'
+    honor_labels:       true                           # <- KEEP the client‑supplied labels
+    static_configs:
+      - targets:        ['{{ prometheus_ip }}:9091']   # Proxmox pushgateway        
+  # block_end: prometheus-pushgateway

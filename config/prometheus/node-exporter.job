@@ -1,0 +1,11 @@
+
+  # block_begin: node-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: node-exporter
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - '{{ node_exporter_host_ip }}:9100'         # current node IP.
+        
+  # block_end: node-exporter
+

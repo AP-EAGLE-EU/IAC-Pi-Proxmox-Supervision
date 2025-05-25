@@ -1,0 +1,37 @@
+# /etc/systemd/system/pgsql-exporter.service
+
+[Unit]
+Description=Prometheus exporter for Postgresql
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ pgsql_super_user }}
+Group={{ pgsql_super_user }}
+Restart=always
+RestartSec=1
+Environment=HOME=/var/lib/postgresql
+EnvironmentFile=/opt/postgres-exporter/postgres-exporter.env
+WorkingDirectory=/opt/postgres-exporter
+ExecStart=/opt/postgres-exporter/bin/postgres-exporter \
+    --config.file=/opt/postgres-exporter/config.yml \
+    --web.listen-address=:9187 \
+    --web.telemetry-path=/metrics \
+    --collector.database_wraparound \
+    --collector.process_idle \
+    --collector.stat_checkpointer \
+    --collector.stat_wal_receiver \
+    --collector.locks \
+    --collector.long_running_transactions \
+    --collector.postmaster \
+    --collector.stat_activity_autovacuum \
+    --collector.stat_bgwriter \
+    --collector.stat_database \
+    --collector.stat_statements \
+    --collector.stat_user_tables \
+    --collector.statio_user_indexes \
+    --collector.statio_user_tables \
+    --collector.wal
+
+[Install]
+WantedBy=multi-user.target

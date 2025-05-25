@@ -1,0 +1,19 @@
+# /etc/systemd/system/php-fpm-exporter.service
+
+[Unit]
+Description=PHP-FPM Exporter
+after=network.target
+
+[Service]
+Type=simple
+User={{ nginx_webserver_user }}
+Group={{ nginx_webserver_group }}
+Restart=always
+RestartSec=3
+ExecStart=/opt/php-fpm-exporter/bin/php-fpm_exporter server \
+    --phpfpm.scrape-uri=unix://{{ php_fpm_sock_path }};/php_fpm_status \
+    --web.listen-address=:9253 \
+    --web.telemetry-path=/metrics
+
+[Install]
+WantedBy=multi-user.target

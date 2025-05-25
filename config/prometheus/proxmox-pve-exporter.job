@@ -1,0 +1,21 @@
+
+  # block_begin: proxmox-pve-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'proxmox-pve-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - {{ proxmox_host_ip }}                  # Proxmox host IP.
+    metrics_path: /pve
+    params:
+      module: [default]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{ proxmox_host_ip }}:9221  # Proxmox exporter.
+        
+  # block_end: proxmox-pve-exporter
+

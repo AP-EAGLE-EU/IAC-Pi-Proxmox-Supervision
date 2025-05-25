@@ -1,0 +1,163 @@
+{% raw %}
+    # block_begin: proxmox-pve-exporter
+    # ------------------------------------------------------------------------------------------
+    - name: proxmox-pve-exporter
+      rules:
+        # -----------------------------------------------
+        # CPU Alerts
+        # -----------------------------------------------
+        - alert: HighNodeCPUWarning
+          expr: pve_cpu_usage_ratio{id=~"node/.*"} > 0.8
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "CPU usage is above 80% on {{ $labels.id }}"
+            description: "Node CPU usage is {{ $value | humanizePercentage }} (warning threshold)"
+
+        - alert: HighNodeCPUCritical
+          expr: pve_cpu_usage_ratio{id=~"node/.*"} > 0.9
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "CPU usage is above 90% on {{ $labels.id }}"
+            description: "Node CPU usage is {{ $value | humanizePercentage }} (critical threshold)"      
+
+        # -----------------------------------------------
+        # RAM Alerts
+        # -----------------------------------------------
+        - alert: HighNodeMemoryWarning
+          expr: (pve_memory_usage_bytes{id=~"node/.*"} / pve_memory_size_bytes{id=~"node/.*"}) > 0.8
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Memory usage is above 80% on {{ $labels.id }}"
+            description: "Node memory usage is {{ $value | humanizePercentage }}"
+
+        - alert: HighNodeMemoryCritical
+          expr: (pve_memory_usage_bytes{id=~"node/.*"} / pve_memory_size_bytes{id=~"node/.*"}) > 0.9
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Memory usage is above 90% on {{ $labels.id }}"
+            description: "Node memory usage is {{ $value | humanizePercentage }}"
+
+        # -----------------------------------------------
+        # Node Status Alerts
+        # -----------------------------------------------
+        - alert: NodeDown
+          expr: pve_up{id=~"node/.*"} == 0
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Proxmox node {{ $labels.id }} is down"
+            description: "Node {{ $labels.id }} has been offline for more than 2 minutes"
+
+        # -----------------------------------------------
+        # VM/LXC Status Alerts
+        # -----------------------------------------------
+        - alert: VMDown
+          expr: pve_up{id=~"qemu/.*"} == 0
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "VM {{ $labels.name }} is down"
+            description: |-
+              VM {{ $labels.name }} (ID: {{ $labels.id }}) has been down for more than 5 minutes
+              - Node: {{ $labels.node }}
+              - Type: {{ $labels.type }}
+
+        - alert: LXCDown
+          expr: pve_up{id=~"lxc/.*"} == 0
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Container {{ $labels.name }} is down"
+            description: |-
+              Container {{ $labels.name }} (ID: {{ $labels.id }}) has been down for more than 5 minutes
+              - Node: {{ $labels.node }}
+              - Type: {{ $labels.type }}
+
+        # -----------------------------------------------
+        # Storage Alerts
+        # -----------------------------------------------
+        - alert: HighStorageUsageWarning
+          expr: (pve_disk_usage_bytes{id=~"storage/.*"} / pve_disk_size_bytes{id=~"storage/.*"}) > 0.9
+          for: 30s
+          labels:
+            severity: warning
+          annotations:
+            summary: "Storage usage is above 90% ({{ $labels.storage }})"
+            description: "Storage {{ $labels.storage }} usage is {{ $value | humanizePercentage }}"
+
+        - alert: HighStorageUsageCritical
+          expr: (pve_disk_usage_bytes{id=~"storage/.*"} / pve_disk_size_bytes{id=~"storage/.*"}) > 0.95
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Storage usage is above 95% ({{ $labels.storage }})"
+            description: "Storage {{ $labels.storage }} usage is {{ $value | humanizePercentage }}"
+
+        # -----------------------------------------------
+        # VM Resource Alerts
+        # -----------------------------------------------
+        - alert: HighVMCPUUsage
+          expr: pve_cpu_usage_ratio{id=~"qemu/.*"} > 0.80
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "High CPU usage in VM {{ $labels.name }}"
+            description: "VM {{ $labels.name }} CPU usage is {{ $value | humanizePercentage }}"
+
+        - alert: HighVMMemoryUsage
+          expr: (pve_memory_usage_bytes{id=~"qemu/.*"} / pve_memory_size_bytes{id=~"qemu/.*"}) > 0.9
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "High memory usage in VM {{ $labels.name }}"
+            description: "VM {{ $labels.name }} memory usage is {{ $value | humanizePercentage }}"
+
+        # -----------------------------------------------
+        # LXC Resource Alerts
+        # -----------------------------------------------
+        - alert: HighLXCCPUUsage
+          expr: pve_cpu_usage_ratio{id=~"lxc/.*"} > 0.8
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "High CPU usage in Container {{ $labels.name }}"
+            description: "Container {{ $labels.name }} CPU usage is {{ $value | humanizePercentage }}"
+
+        - alert: HighLXCMemoryUsage
+          expr: (pve_memory_usage_bytes{id=~"lxc/.*"} / pve_memory_size_bytes{id=~"lxc/.*"}) > 0.9
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "High memory usage in Container {{ $labels.name }}"
+            description: "Container {{ $labels.name }} memory usage is {{ $value | humanizePercentage }}"
+
+        # -----------------------------------------------
+        # Backup Alerts
+        # -----------------------------------------------
+        - alert: VMBackupFailure
+          expr: pve_up{id=~"qemu/.*"} == 0 and pve_guest_info{id=~"qemu/.*",template="0"} == 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VM {{ $labels.name }} backup failure detected"
+            description: "VM {{ $labels.name }} backup not successfull"
+            
+    # block_begin: proxmox-pve-exporter
+{% endraw %}

@@ -1,0 +1,12 @@
+{% raw %}
+# /etc/prometheus/alert_rules.yml
+
+#
+# This file called alert_rules.yml include the thresholds that matter CPU > 60%, ZFS usage > 60%, or “Nginx is down”.
+#
+# 1. Check the metric name from exporter something like pve_node_ram_percent
+# 2. Define the thresholdsusage  pve_node_ram_percent > 60 
+
+# ------------------------------------------------------------------------------------------
+groups:
+{% endraw %}

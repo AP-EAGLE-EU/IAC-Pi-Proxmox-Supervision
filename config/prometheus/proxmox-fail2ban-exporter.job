@@ -1,0 +1,11 @@
+
+  # block_begin: proxmox-fail2ban-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'proxmox-fail2ban-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - '{{ proxmox_host_ip }}:9191'         # Proxmox fail2ban-exporter
+        labels:
+           alias: "Proxmox_host"              
+  # block_end: proxmox-fail2ban-exporter

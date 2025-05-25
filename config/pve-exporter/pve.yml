@@ -1,0 +1,6 @@
+# /etc/pve-exporter/pve.yml
+
+default:
+  user:         '{{ pve_exporter_user_for_service }}'
+  password:     '{{ pve_exporter_password_for_service }}'
+  verify_ssl:   false

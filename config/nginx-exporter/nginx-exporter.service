@@ -1,0 +1,16 @@
+# Path:/etc/systemd/system/nginx-exporter.service
+
+[Unit]
+Description=NGINX Prometheus Exporter
+After=network.target nginx.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nginx-exporter
+Restart=always
+RestartSec=5
+ExecStart=/opt/nginx-exporter/bin/nginx-prometheus-exporter \
+    --nginx.scrape-uri=http://127.0.0.1/stub_status
+
+[Install]
+WantedBy=multi-user.target

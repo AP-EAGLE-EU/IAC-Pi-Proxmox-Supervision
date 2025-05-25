@@ -1,0 +1,15 @@
+{% raw %}
+    # block_begin: prometheus_instance_alerts
+    # ------------------------------------------------------------------------------------------
+    - name: prometheus_instance_alerts
+      rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary:     "Instance {{$labels.instance}} is down"
+          description: "Instance {{$labels.instance}} of job {{$labels.job}} has been down for more than 5 minutes."
+    # block_end: prometheus_instance_alerts 
+{% endraw %}

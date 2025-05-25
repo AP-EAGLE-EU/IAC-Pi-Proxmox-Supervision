@@ -1,0 +1,17 @@
+# pve_exporter.service
+
+[Unit]
+Description=PVE Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ proxmox_exporter_user_for_service }}
+Type=simple
+Restart=always
+ExecStart=/opt/pve-exporter/bin/pve_exporter \
+  --config.file=/etc/pve-exporter/pve.yml \
+  --web.listen-address=:9221
+
+[Install]
+WantedBy=multi-user.target

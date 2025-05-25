@@ -1,0 +1,11 @@
+# /etc/systemd/system/tshark-capture.timer
+[Unit]
+Description=Run tshark-capture every 5s
+
+[Timer]
+OnBootSec=10s
+OnUnitActiveSec=5s
+Unit=tshark-capture.service
+
+[Install]
+WantedBy=timers.target

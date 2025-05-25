@@ -1,0 +1,11 @@
+
+  # block_begin: php-fpm-exporter
+  # ------------------------------------------------------------------------------------------
+  - job_name: 'php-fpm-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:   ['{{ nginx_node01_ip }}:9253']           # nginx_node01_ip.
+        labels:
+            alias: "nginx_node01"                 
+
+  # block_end: php-fpm-exporter

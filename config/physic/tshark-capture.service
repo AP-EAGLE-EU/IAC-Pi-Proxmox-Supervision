@@ -1,0 +1,15 @@
+# /etc/systemd/system/tshark-capture.service
+[Unit]
+Description=Prometheus physical metric via tshark
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env python3 /usr/local/bin/tshark-capture.py
+Restart=always
+User=root
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

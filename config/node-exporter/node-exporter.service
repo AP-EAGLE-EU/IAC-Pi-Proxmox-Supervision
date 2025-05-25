@@ -1,0 +1,19 @@
+# Path:/etc/systemd/system/node_exporter.service
+
+[Unit] 
+Description=Prometheus exporter for Linux
+Wants=network-online.target 
+After=network-online.target
+
+[Service] 
+User=node_exporter
+Group=node_exporter
+Type=simple
+Restart=always
+RestartSec=1
+WorkingDirectory=/opt/node_exporter
+ExecStart=/opt/node_exporter/node_exporter/node_exporter \
+    --web.listen-address=:9100
+    
+[Install]
+WantedBy=multi-user.target
