@@ -88,7 +88,7 @@ py iac.py <playbook-name>.yaml
 This approach allows you to automate and customize the installation and configuration of your IT monitoring stack in a modular and secure way.
 
 ## Pinciples substitution to handle placeholders with Jinja2 format like:
-
+```
 config.yaml:
 
 global_config:
@@ -115,7 +115,7 @@ remote_conf:                           '/etc/prometheus/alert_rules.yml'
 name:                                  'prometheus.service'
 local_conf:                            '{{ base_directory }}/config/prometheus/prometheus.service'
 remote_conf:                           '/etc/systemd/system/prometheus.service'
-
+```
 
 ## Note for proxmox ssh
 
