@@ -1,0 +1,32 @@
+#
+# JAILS
+#
+
+# at the moment, PVE still uses iptables, but a switch to nftables is currently being worked on. 
+
+[proxmox]
+enabled   = true
+port      = https,http,8006
+filter    = proxmox
+logpath   = /var/log/daemon.log
+backend   = systemd
+maxretry  = 3
+findtime  = 2d
+bantime   = 1h
+banaction = iptables-allports
+
+
+[sshd]
+enabled  = true
+port     = ssh
+filter   = sshd
+logpath  = journal
+backend  = systemd
+
+# This sets the overall action for banning
+action    = %(action_)s
+banaction = iptables-allports
+
+maxretry = 3
+findtime = 300
+bantime  = 86400
