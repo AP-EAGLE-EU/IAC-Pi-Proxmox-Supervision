@@ -4,30 +4,30 @@
 # ------------------------------------------------------------------------------------------
 global_config:
     debug:                                       false   
-    job_name:                                    'IaC Proxmox Rasberry PI'
+    job_name:                                    'IaC for Proxmox Rasberry PI'
     version:                                     'Q12025'
     writtenby:                                   'Ambroise PETIN'
     # ...............................................................
     vault_file_path:                             '{{ base_directory }}/vault/vault.yaml'    
     # ...............................................................
     # Lan 
-    dns:                                         'xxxxxxxxxxx'
-    gateway:                                     'xxxxxxxxxxx'
-    gateway_lan:                                 'xxxxxxxxxxx'
-    gateway_internal:                            'xxxxxxxxxxx'
-    ntp_server:                                  'xxxxxxxxxxx'
-    domain:                                      'xxxxxxxxxxx'                           # must be non-public like .internal .private .local
-    domain_upper:                                'xxxxxxxxxxx'                           # must be upper for ldap
+    dns:                                         '1.2.3.4'
+    gateway:                                     '1.2.3.4'
+    gateway_lan:                                 '1.2.3.4'
+    gateway_internal:                            '1.2.3.4'
+    ntp_server:                                  '1.2.3.4'
+    domain:                                      'ap-eagle.local'                        # must be non-public like .internal .private .local
+    domain_upper:                                'AP-EAGLE.LOCAL'                        # must be upper for ldap
     domain_check:                                'www.google.com'
     # ...............................................................
     # pfsense
-    pfsense_ip_vip:                              'xxxxxxxxxxx'
-    pfsense_ip_primary:                          'xxxxxxxxxxx'
-    pfsense_ip_backup:                           'xxxxxxxxxxx'
+    pfsense_ip_vip:                              '1.2.3.4'
+    pfsense_ip_primary:                          '1.2.3.4'
+    pfsense_ip_backup:                           '1.2.3.4'
     # ...............................................................
     # proxmox
     # Required Connection Settings
-    proxmox_host_ip:                             'xxxxxxxxxxx'                           # Proxmox host IP address
+    proxmox_host_ip:                             '1.2.3.4'                               # Proxmox host IP address
     proxmox_host_name:                           'proxmox'                               # Fully qualified domain name
     proxmox_host_arch:                           'arm64'                                 # amd64 or arm64    
     #
@@ -64,167 +64,19 @@ global_config:
     task_attributes:                             {}
     # ...............................................................
     # prometheus
-    prometheus_ip:                               'xxxxxxxxxxx'    
-    prometheus_container_id:                     '181'     
-    # 
-    prometheus_download_version:                 '3.3.0'
-    prometheus_download_file_ext:                'tar.gz'    
-    prometheus_download_file:                    'prometheus-{{ prometheus_download_version }}-rc.0.linux-{{ proxmox_host_arch }}'   
-    prometheus_download_url:                     'https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_download_version }}-rc.0/{{ prometheus_download_file }}.{{ prometheus_download_file_ext }}'
-    prometheus_pushgateway_delay:                15 
-    prometheus_host_name:                        'prometheus-lxc'      
-    prometheus_configs:
-        - install:                               true
-          name:                                  'prometheus.yml'
-          local_conf:                            '{{ base_directory }}/config/prometheus/prometheus.yml'
-          remote_conf:                           '/etc/prometheus/prometheus.yml'   
-        - install:                               true
-          name:                                  'alert_rules.yml'
-          local_conf:                            '{{ base_directory }}/config/prometheus/alert_rules.yml'
-          remote_conf:                           '/etc/prometheus/alert_rules.yml'   
-        - install:                               true
-          name:                                  'prometheus.service'
-          local_conf:                            '{{ base_directory }}/config/prometheus/prometheus.service'
-          remote_conf:                           '/etc/systemd/system/prometheus.service'
+    prometheus_ip:                               '1.2.3.4'    
+    prometheus_container_id:                     '181'
+    prometheus_host_name:                        'prometheus-lxc' 
     # ...............................................................
-    # pve-exporter
-    pve_exporter_configs:
-        - install:                               true
-          name:                                  'pve.yml'
-          local_conf:                            '{{ base_directory }}/config/pve-exporter/pve.yml'
-          remote_conf:                           '/etc/pve-exporter/pve.yml'
-        - install:                               true
-          name:                                  'pve_exporter.service'
-          local_conf:                            '{{ base_directory }}/config/pve-exporter/pve-exporter.service'
-          remote_conf:                           '/etc/systemd/system/pve-exporter.service'
-    # ...............................................................
-    # fail2ban-exporter
-    fail2ban_exporter_download_version:          '0.10.2'
-    fail2ban_exporter_download_file_ext:         'tar.gz'
-    fail2ban_exporter_download_file:             'fail2ban_exporter_{{ fail2ban_exporter_download_version }}_linux_{{ proxmox_host_arch }}'    
-    fail2ban_exporter_download_url:              'https://gitlab.com/hctrdev/fail2ban-prometheus-exporter/-/releases/v{{ fail2ban_exporter_download_version }}/downloads/{{ fail2ban_exporter_download_file }}.{{ fail2ban_exporter_download_file_ext }}'
-    fail2ban_exporter_configs:
-        - install:                               true
-          name:                                  'fail2ban-exporter.service'
-          local_conf:                            '{{ base_directory }}/config/fail2ban-exporter/fail2ban-exporter.service'
-          remote_conf:                           '/etc/systemd/system/fail2ban-exporter.service'
-    # ...............................................................
-    # nginx-exporter
-    nginx_exporter_download_version:             '1.4.1'
-    nginx_exporter_download_file_ext:            'tar.gz'      
-    nginx_exporter_download_file:                'nginx-prometheus-exporter_{{ nginx_exporter_download_version }}_linux_{{ proxmox_host_arch }}'
-    nginx_exporter_download_url:                 'https://github.com/nginx/nginx-prometheus-exporter/releases/download/v{{ nginx_exporter_download_version }}/{{ nginx_exporter_download_file }}.{{ nginx_exporter_download_file_ext }}'     
-    nginx_exporter_configs:
-        - install:                               true
-          name:                                  'nginx-exporter.service'
-          local_conf:                            '{{ base_directory }}/config/nginx-exporter/nginx-exporter.service'
-          remote_conf:                           '/etc/systemd/system/nginx-exporter.service'
-    # ...............................................................
-    # php-fpm-exporter
-    php_fpm_exporter_download_version:           '2.2.0'
-    php_fpm_exporter_download_file_ext:          'tar.gz'      
-    php_fpm_exporter_download_file:              'php-fpm_exporter_{{ php_fpm_exporter_download_version }}_linux_{{ proxmox_host_arch }}'
-    php_fpm_exporter_download_url:               'https://github.com/hipages/php-fpm_exporter/releases/download/v{{ php_fpm_exporter_download_version }}/{{ php_fpm_exporter_download_file }}.{{ php_fpm_exporter_download_file_ext }}'     
-    php_fpm_exporter_configs:
-        - install:                               true
-          name:                                  'php-fpm-exporter.service'
-          local_conf:                            '{{ base_directory }}/config/php-fpm-exporter/php-fpm-exporter.service'
-          remote_conf:                           '/etc/systemd/system/php-fpm-exporter.service'          
-    # ...............................................................
-    # pgsql-exporter
-    pgsql_exporter_download_version:             '0.17.1'
-    pgsql_exporter_download_file_ext:            'tar.gz'      
-    pgsql_exporter_download_file:                'postgres_exporter-{{ pgsql_exporter_download_version }}.linux-{{ proxmox_host_arch }}'
-    pgsql_exporter_download_url:                 'https://github.com/prometheus-community/postgres_exporter/releases/download/v{{ pgsql_exporter_download_version }}/{{ pgsql_exporter_download_file }}.{{ pgsql_exporter_download_file_ext }}'  
-    pgsql_exporter_configs:
-        - install:                               true
-          name:                                  'postgres-exporter.env'
-          local_conf:                            '{{ base_directory }}/config/pgsql-exporter/postgres-exporter.env'
-          remote_conf:                           '/opt/postgres-exporter/postgres-exporter.env'
-        - install:                               true
-          name:                                  'config.yml'
-          local_conf:                            '{{ base_directory }}/config/pgsql-exporter/config.yml'
-          remote_conf:                           '/opt/postgres-exporter/config.yml'
-        - install:                               true
-          name:                                  'postgres-exporter.service'
-          local_conf:                            '{{ base_directory }}/config/pgsql-exporter/postgres-exporter.service'
-          remote_conf:                           '/etc/systemd/system/postgres-exporter.service'
-    # ...............................................................
-    # node-exporter
-    node_exporter_download_version:              '1.9.0'
-    node_exporter_download_file_ext:             'tar.gz'
-    node_exporter_download_file:                 'node_exporter_{{ node_exporter_download_version }}_linux_{{ proxmox_host_arch }}'    
-    node_exporter_download_url:                  'https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_download_version }}/node_exporter-{{ node_exporter_download_version }}.linux-{{ proxmox_host_arch }}.{{ node_exporter_download_file_ext }}'
-    node_exporter_textfile_dir:                  '/var/lib/node_exporter/textfile_collector'
-    node_exporter_configs:
-        - install:                               true
-          name:                                  'proxmox-node-exporter.service'
-          local_conf:                            '{{ base_directory }}/config/node-exporter/proxmox-node-exporter.service'
-          remote_conf:                           '/etc/systemd/system/node-exporter.service'
-        - install:                               true
-          name:                                  'config.yml'
-          local_conf:                            '{{ base_directory }}/config/node-exporter/config.yml'
-          remote_conf:                           '/etc/node-exporter/config.yml'    
-    # ...............................................................
-    # alertmanager
-    alertmanager_ip:                             'xxxxxxxxxxx'    
-    alertmanager_container_id:                   '182'    
-    #
-    alertmanager_download_version:               '0.28.1'
-    alertmanager_download_file_ext:              'tar.gz'      
-    alertmanager_download_file:                  'alertmanager-{{ alertmanager_download_version }}.linux-{{ proxmox_host_arch }}'
-    alertmanager_download_url:                   'https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_download_version }}/{{ alertmanager_download_file }}.{{ alertmanager_download_file_ext }}'  
-    alertmanager_host_name:                      'alertmanager-lxc'
-    alertmanager_mail_to:                        'ambroise.petin@gmail.com'    
-    alertmanager_configs:
-        - install:                               true
-          name:                                  'alertmanager.yml'
-          local_conf:                            '{{ base_directory }}/config/alertmanager/alertmanager.yml'
-          remote_conf:                           '/etc/alertmanager/alertmanager.yml'
-        - install:                               true
-          name:                                  'alertmanager.service'
-          local_conf:                            '{{ base_directory }}/config/alertmanager/alertmanager.service'
-          remote_conf:                           '/etc/systemd/system/alertmanager.service'
+    # alertmanager             
+    alertmanager_ip:                             '1.2.3.4'    
+    alertmanager_container_id:                   '182'
+    alertmanager_host_name:                      'alertmanager-lxc' 
     # ...............................................................
     # grafana    
-    grafana_ip:                                  'xxxxxxxxxxx'
-    grafana_container_id:                        '183'  
-    #  
+    grafana_ip:                                  '1.2.3.4'
+    grafana_container_id:                        '183'
     grafana_host_name:                           'grafana-lxc'    
-    grafana_configs:
-        - install:                               true
-          name:                                  'grafana.ini'
-          local_conf:                            '{{ base_directory }}/config/grafana/grafana.ini'
-          remote_conf:                           '/etc/grafana/grafana.ini'   
-        - install:                               true
-          name:                                  'dashboards.yaml'
-          local_conf:                            '{{ base_directory }}/config/grafana/dashboards.yaml'
-          remote_conf:                           '/etc/grafana/dashboards.yaml'          
-    grafana_dashboards:
-        - install:                               true
-          name:                                  'fail2ban-exporter.json'
-          local_conf:                            '{{ base_directory }}/config/grafana/fail2ban-exporter.json'
-          remote_conf:                           '/tmp/fail2ban-exporter.json'    
-        - install:                               true
-          name:                                  'nginx-exporter.json'
-          local_conf:                            '{{ base_directory }}/config/grafana/nginx-exporter.json'
-          remote_conf:                           '/tmp/nginx-exporter.json'       
-        - install:                               true
-          name:                                  'pfsense-exporter.json'
-          local_conf:                            '{{ base_directory }}/config/grafana/pfsense-exporter.json'
-          remote_conf:                           '/tmp/pfsense-exporter.json'      
-        - install:                               true
-          name:                                  'pgsql-exporter.json'
-          local_conf:                            '{{ base_directory }}/config/grafana/pgsql-exporter.json'
-          remote_conf:                           '/tmp/pgsql-exporter.json'          
-        - install:                               true
-          name:                                  'phpfpm-exporter.json'
-          local_conf:                            '{{ base_directory }}/config/grafana/phpfpm-exporter.json'
-          remote_conf:                           '/tmp/phpfpm-exporter.json'
-        - install:                               true
-          name:                                  'pve-exporter.json'
-          local_conf:                            '{{ base_directory }}/config/grafana/pve-exporter.json'
-          remote_conf:                           '/tmp/pve-exporter.json' 
     # ...............................................................
     # kernel
     kernel_configs:
@@ -247,157 +99,30 @@ global_config:
     kernel_netdev_max_backlog:                   ''
     kernel_mok_priv:                             '/etc/pki/tls/certs/signing_key.priv'
     kernel_mok_der:                              '/etc/pki/tls/certs/signing_key.der'
-    kernel_mok_password:                         'xxxxxxxxxxxxxxxxxxxxxxx'
-    # ...............................................................
-    # clamav
-    clamav_quarantine:                           '/var/lib/clamav/quarantine'
-    clamav_run_path:                             '/var/run/clamav/'
-    clamav_unixsocket:                           '{{ clamav_run_path }}/clamd.ctl'
-    clamav_DatabaseDirectory:                    '/var/lib/clamav'
-    clamav_clamd_service:                        '/usr/lib/systemd/system/clamd.service'    
-    clamav_freshclam_service:                    '/usr/lib/systemd/system/freshclam.service'
-    clamav_clamonacc_service:                    '/usr/lib/systemd/system/clamonacc.service'
-    clamav_OnAccessMountPath:                    '/zfs.pool00'
-    clamav_proxmox_configs:
-        - install:                               true
-          name:                                  'clamd.conf'
-          local_conf:                            '{{ base_directory }}/config/clamav/proxmox/clamd.conf'
-          remote_conf:                           '/etc/clamav/clamd.conf'
-        - install:                               true
-          name:                                  'freshclam.conf'
-          local_conf:                            '{{ base_directory }}/config/clamav/proxmox/freshclam.conf'
-          remote_conf:                           '/etc/clamav/freshclam.conf'           
-    # ...............................................................
-    # php
-    php_version:                                 '8.4'    
-    php_log:                                     '/var/log/nginx/php_error.log'
-    php_log_path:                                '/var/log/nginx'       
-    php_configs:      
-        # fpm
-        - install:                               true
-          name:                                  'php.ini'
-          local_conf:                            '{{ base_directory }}/config/php/php.ini'
-          remote_conf:                           '/etc/php/{{ php_version }}/fpm/php.ini'   
-        # cli  
-        - install:                               true
-          name:                                  'php.ini'
-          local_conf:                            '{{ base_directory }}/config/php/php.ini'
-          remote_conf:                           '/etc/php/{{ php_version }}/cli/php.ini'          
-        # modules           
-        - install:                               true
-          name:                                  'redis.ini'
-          local_conf:                            '{{ base_directory }}/config/php/redis.ini'
-          remote_conf:                           '/etc/php/{{ php_version }}/mods-available/redis.ini'
-        - install:                               true
-          name:                                  'opcache.ini'
-          local_conf:                            '{{ base_directory }}/config/php/opcache.ini'
-          remote_conf:                           '/etc/php/{{ php_version }}/mods-available/opcache.ini'
-        - install:                               true
-          name:                                  'apcu.ini'
-          local_conf:                            '{{ base_directory }}/config/php/apcu.ini'
-          remote_conf:                           '/etc/php/{{ php_version }}/mods-available/apcu.ini'
-    php_checks:
-        - install:                               true
-          name:                                  'test.php'
-          local_conf:                            '{{ base_directory }}/config/php/test.php'
-          remote_conf:                           '/tmp/test.php'             
-    # ...............................................................
-    # php-fpm
-    php_fpm_log:                                 '/var/log/php-fpm/php{{ php_version }}-fpm.log'
-    php_fpm_log_path:                            '/var/log/php-fpm' 
-    php_fpm_sock_path:                           '/run/php/php{{ php_version }}-fpm.sock'
-    php_fpm_pid_path:                            '/run/php/php{{ php_version }}-fpm.pid'
-    php_fpm_configs:
-         # php-fpm 
-        - install:                               true
-          name:                                  'php-fpm.conf'
-          local_conf:                            '{{ base_directory }}/config/php-fpm/php-fpm.conf'
-          remote_conf:                           '/etc/php/{{ php_version }}/fpm/php-fpm.conf'
-        - install:                               true
-          name:                                  'www.conf'
-          local_conf:                            '{{ base_directory }}/config/php-fpm/www.conf'
-          remote_conf:                           '/etc/php/{{ php_version }}/fpm/pool.d/www.conf'
-        - install:                               true
-          name:                                  'upstream.conf'
-          local_conf:                            '{{ base_directory }}/config/php-fpm/upstream.conf'
-          remote_conf:                           '/etc/nginx/conf.d/upstream.conf'          
-        - install:                               true
-          name:                                  'tmpfile.php-fpm.conf'
-          local_conf:                            '{{ base_directory }}/config/php-fpm/tmpfile.php-fpm.conf'
-          remote_conf:                           '/etc/tmpfiles.d/php-fpm.conf'
-    php_fpm_checks:
-        - install:                               true
-          name:                                  'test.php'
-          local_conf:                            '{{ base_directory }}/config/php-fpm/test.php'
-          remote_conf:                           '/tmp/test.php'
-    php_fpm_pm:                                  'static'
-    # Computed (need for file substitution)  
-    php_fpm_pm_max_children:                     60
-    php_fpm_pm_start_servers:                    20
-    php_fpm_pm_min_spare_servers:                5
-    php_fpm_pm_max_spare_servers:                35
-    php_fpm_pm_max_requests:                     500  
-    # ...............................................................
-    # fail2ban
-    fail2ban_proxmox_configs:
-        # configuration  
-        - install:                               true
-          name:                                  'fail2ban.conf'
-          local_conf:                            '{{ base_directory }}/config/fail2ban/proxmox/fail2ban.conf'
-          remote_conf:                           '/etc/fail2ban/fail2ban.conf'    
-        # jails  
-        - install:                               true
-          name:                                  'jail.local'
-          local_conf:                            '{{ base_directory }}/config/fail2ban/proxmox/jail.local'
-          remote_conf:                           '/etc/fail2ban/jail.local'
-        # Filter  
-        - install:                               true
-          name:                                  'proxmox.conf'
-          local_conf:                            '{{ base_directory }}/config/fail2ban/proxmox/proxmox.conf'
-          remote_conf:                           '/etc/fail2ban/filter.d/proxmox.conf'    
+    kernel_mok_password:                         'xxxxxxxxxxxxxxxxxxxxxxx'     
     # ...............................................................
     # nginx
     #
     nginx_node01_name:                           'web-node01-lxc'
-    nginx_node01_ip:                             'xxxxxxxxxxx'
+    nginx_node01_ip:                             '1.2.3.4'
     nginx_node01_container_id:                   '184'
     #
     nginx_node02_name:                           'web-node02-lxc'    
-    nginx_node02_ip:                             'xxxxxxxxxxx'    
+    nginx_node02_ip:                             '1.2.3.4'    
     nginx_node02_container_id:                   '185'    
-    # 
-    nginx_config_local:                          '{{ base_directory }}/config/nginx'
-    nginx_conf_site_path:                        '/etc/nginx/conf.d'
-    nginx_config_base:                           '/etc/nginx'
-    nginx_webserver_html_path:                   '/var/www/html'
-    nginx_webserver_user:                        'www-data'
-    nginx_webserver_group:                       'www-data'
-    nginx_webserver_name:                        'nginx'
-    nginx_worker_connection:                     8
-    nginx_request_clients:                       2000
-    nginx_bigfiles_path:                         '/var/big_temp_file'
-    nginx_configs:
-        - install:                               true
-          name:                                  'nginx.conf'
-          local_conf:                            '{{ base_directory }}/config/nginx/nginx.conf'
-          remote_conf:                           '{{ nginx_config_base }}/nginx.conf'
-        - install:                               true
-          name:                                  'localhost'
-          local_conf:                            '{{ base_directory }}/config/nginx/localhost.conf'
-          remote_conf:                           '{{ nginx_conf_site_path }}/localhost.conf'
     # ...............................................................
     # postgresql
     pgsql_host:                                  'localhost'
     pgsql_port:                                  '5432'      
-    pgsql_vip:                                   'xxxxxxxxxxx'
+    pgsql_vip:                                   '1.2.3.4'
     #
     pgsql_node01_name:                           'pgsql-node01-lxc'
-    pgsql_node01_ip:                             'xxxxxxxxxxx'
+    pgsql_node01_ip:                             '1.2.3.4'
     pgsql_node01_container_id:                   '185'
     pgsql_node01_node_id:                        '1'
     #
     pgsql_node02_name:                           'pgsql-node02-lxc'    
-    pgsql_node02_ip:                             'xxxxxxxxxxx'    
+    pgsql_node02_ip:                             '1.2.3.4'    
     pgsql_node02_container_id:                   '186'
     pgsql_node02_node_id:                        '2'
     #  
