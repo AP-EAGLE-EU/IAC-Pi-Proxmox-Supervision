@@ -65,7 +65,7 @@ global_config:
     # ...............................................................
     # prometheus
     prometheus_version:                          '2.53.3'   # LTS
-    prometheus_ip:                               '10.4.1.151'
+    prometheus_ip:                               '1.2.3.4'
     prometheus_configs:
         - install:                               true
           name:                                  'prometheus.yml'
