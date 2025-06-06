@@ -47,7 +47,8 @@
       ├──   requirements.txt
       │  
       └──   log
-            
+
+![image](https://github.com/user-attachments/assets/1bf4052f-7b75-4290-a825-0083baa4b241)
             
  # Pinciples substitution to handle placeholders like:
 ```python
