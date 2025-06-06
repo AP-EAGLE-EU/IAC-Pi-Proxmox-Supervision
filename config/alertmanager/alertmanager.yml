@@ -40,12 +40,17 @@ route:
   repeat_interval:        1d
 
   receiver:              'email-alerts'
-
+  routes:
+    - receiver:          'buzzer'
+    
 receivers:
 - name: 'email-alerts'
   email_configs:
   - to: '{{ alertmanager_mail_to }}'
     send_resolved: true
+- name: 'buzzer'
+  webhook_configs:
+  - url: 'http://{{ proxmox_host_ip }}:9000/alert'
 
 #inhibit_rules:
 #- source_match:
