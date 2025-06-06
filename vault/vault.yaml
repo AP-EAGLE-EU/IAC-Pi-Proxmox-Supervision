@@ -42,10 +42,15 @@ vault_config:
     # grafana          
     grafana_admin_username:                      'admin'
     grafana_admin_password:                      '{{ proxmox_password }}'
+    grafana_token:                               'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'    
     # ...............................................................
     # pfsense
     pfsense_admin_user:                          'admin'
     pfsense_admin_password:                      '{{ main_password }}'
+    # ...............................................................
+    # nginx
+    nginx_webserver_user:                        'www-data'
+    nginx_webserver_group:                       'www-data'   
     # ...............................................................
     # postgresql
     pgsql_super_user:                            'postgres'
