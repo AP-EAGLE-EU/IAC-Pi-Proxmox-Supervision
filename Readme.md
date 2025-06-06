@@ -50,7 +50,8 @@
             
             
  # Pinciples substitution to handle placeholders like:
-'''
+```python
+
 config.yaml:
 # ------------------------------------------------------------------------------------------
 global_config:
@@ -124,7 +125,7 @@ scrape_configs:
 
    # jobs to scrap data from exporters (PVE, NGINX, PHP-FPM, MARIADB,...)
  
-''' 
+ '''
  
  # Note ssh with root access
 Ensure that your Proxmox server is properly configured to accept SSH connection with root
