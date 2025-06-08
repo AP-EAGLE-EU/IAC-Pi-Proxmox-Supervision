@@ -5,7 +5,7 @@
     scrape_interval: 5s
     static_configs:
       - targets:
-          - '{{ pfsense_ip_primary }}:9100'         # pfsense primary IP.
+          - '{{ pfsense_vip }}:9100'         # pfsense VIP.
         
   # block_end: pfsense-node-exporter
 
