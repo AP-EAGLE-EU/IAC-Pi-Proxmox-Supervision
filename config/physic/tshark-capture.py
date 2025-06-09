@@ -42,23 +42,19 @@ def capture_and_parse():
 
         metrics = {}
 
-        # 1. Overall stats
-        cmd_stats = [
+        # 1. Real total number of packets and bytes (WHAOU!)
+        cmd_count = [
             "tshark",
             "-r", pcap_file,
-            "-q",
-            "-z", "io,stat,0"
+            "-T", "fields",
+            "-e", "frame.len"
         ]
-        stats_output = subprocess.run(cmd_stats, capture_output=True, text=True).stdout
-        pkt_count, byte_count = 0, 0
-        for line in stats_output.splitlines():
-            if re.match(r"^\|\s+\d", line):
-                cols = [c.strip() for c in line.split("|")]
-                try:
-                    pkt_count += int(cols[2])
-                    byte_count += int(cols[3])
-                except Exception:
-                    continue
+        pkt_count = 0
+        byte_count = 0
+        for line in subprocess.run(cmd_count, capture_output=True, text=True).stdout.splitlines():
+            if line.strip().isdigit():
+                pkt_count += 1
+                byte_count += int(line.strip())
         metrics["phy_tshark_packets"] = pkt_count
         metrics["phy_tshark_bytes"]   = byte_count
 
