@@ -27,6 +27,8 @@ global:
   resolve_timeout:        1m
 
 route:
+  receiver:               'all-alerts'
+  
   group_by:               ['alertname', 'instance']
 
   # Wait for a short time to collect similar alerts before sending the first notification.
@@ -38,13 +40,9 @@ route:
 
   # Notifications continue every x time if the alert remains unresolved.
   repeat_interval:        1d
-
-  receiver:              'email-alerts'
-  routes:
-    - receiver:          'buzzer'
     
 receivers:
-- name: 'email-alerts'
+- name: 'all-alerts'
   email_configs:
   - to: '{{ alertmanager_mail_to }}'
     send_resolved: true
